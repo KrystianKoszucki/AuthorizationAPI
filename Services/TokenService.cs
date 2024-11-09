@@ -33,6 +33,7 @@ namespace Authorization.Services
             {
                 Id = user.Id,
                 Email = login.Email,
+                Role = user.RoleId
             };
             var jwt = GenerateToken(tokenRequest);
             return jwt;
@@ -49,7 +50,8 @@ namespace Authorization.Services
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new(JwtRegisteredClaimNames.Sub, request.Email),
                 new(JwtRegisteredClaimNames.Email, request.Email),
-                new("id", request.Id.ToString())
+                new("id", request.Id.ToString()),
+                new("role", request.Role.ToString())
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

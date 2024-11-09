@@ -27,7 +27,8 @@ namespace Authorization.Services
                 Surname = user.Surname,
                 DateOfBirth = user.DateOfBirth,
                 Email = user.Email,
-                Password = user.Password
+                Password = user.Password,
+                RoleId = UserRoles.User
             };
 
             _databaseService.AddUser(newUser);
