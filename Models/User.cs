@@ -1,3 +1,5 @@
+using Authorization.Models;
+
 namespace Authorization
 {
     public class User
@@ -8,7 +10,7 @@ namespace Authorization
         public DateTime DateOfBirth { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public int RoleId { get; set; } = 1;
+        public UserRoles RoleId { get; set; }
 
     }
 }
