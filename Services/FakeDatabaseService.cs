@@ -6,6 +6,7 @@
         void DeleteUser(int id);
         List<User> GetAllUsers();
         User GetUserById(int id);
+        User GetUserByEmail(string email);
         void UpdateUser(User user);
     }
 
@@ -35,6 +36,11 @@
         public User GetUserById(int id)
         {
             return _users.Find(u => u.Id == id);
+        }
+
+        public User GetUserByEmail(string email)
+        {
+            return _users.Find(u => u.Email == email);
         }
 
         public void UpdateUser(User user)
