@@ -26,6 +26,10 @@ builder.Services.AddAuthentication(x =>
         ValidateIssuerSigningKey = true
     };
 });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOrSuperAdminPolicy", policy => policy.RequireRole("Admin", "SuperAdmin"));
+});
 
 builder.Services.Configure<JwtSettings>(config.GetSection("JwtSettings"));
 

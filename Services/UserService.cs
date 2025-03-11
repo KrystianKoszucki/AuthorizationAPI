@@ -9,6 +9,12 @@ namespace Authorization.Services
         User GetUserByEmail(string email);
         bool CheckPassword(LoginModel loginModel);
         void UpdatePassword(User user, string newPassword);
+        void UpdateRole(User user, UpdateRole updateRoleRequest);
+        void DeleteUser(int id);
+        //void BanUser(User user);
+        void BanUser(User user);
+        void UnbanUser(User user);
+        void PermabanUser(User user);
     }
     public class UserService: IUserService
     {
@@ -52,13 +58,38 @@ namespace Authorization.Services
             if (loginModel.Password != user.Password) return false;
 
             return true;
-
         }
 
         public void UpdatePassword(User user, string newPassword)
         {
             user.Password = newPassword;
             _databaseService.UpdateUser(user);
+        }
+
+        public void UpdateRole(User user, UpdateRole updateRoleRequest)
+        {
+            user.RoleId = updateRoleRequest.Role;
+            _databaseService.UpdateUser(user);
+        }
+
+        public void DeleteUser(int id)
+        {
+            _databaseService.DeleteUser(id);
+        }
+
+        public void BanUser(User user)
+        {
+            user.HandleBan();
+        }
+
+        public void UnbanUser(User user)
+        {
+            user.Unban();
+        }
+
+        public void PermabanUser(User user)
+        {
+            user.Permaban();
         }
     }
 }

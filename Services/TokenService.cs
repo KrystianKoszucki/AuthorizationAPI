@@ -28,7 +28,23 @@ namespace Authorization.Services
             var tokenCanBeCreated = _userService.CheckPassword(login);
 
             if (!tokenCanBeCreated) return "";
+
             var user = _userService.GetUserByEmail(login.Email);
+
+            if(user.IsPermamentBan())
+            {
+                var message = "Your account has been permamently banned. " +
+                    "Contact SuperAdmin if you think you are wrongfully acused";
+                return message;
+            }
+
+            if (user.IsCurrentlyBanned())
+            {
+                var message = $"Your account has been banned until {user.LastBanDate + user.BanDuration}." +
+                    $"\n That is your ban number: {user.BanCounter}. After 3rd one you will be banned permamently.";
+                return message;
+            }
+
             var tokenRequest = new TokenGenerationRequest()
             {
                 Id = user.Id,
