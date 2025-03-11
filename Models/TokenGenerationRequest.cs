@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-namespace Authorization.Models
+﻿namespace Authorization.Models
 {
     public class TokenGenerationRequest
     {
