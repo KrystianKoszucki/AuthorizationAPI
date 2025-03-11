@@ -9,7 +9,7 @@ namespace Authorization.Services
 {
     public interface ITokenService
     {
-        string GenerateTokenWhileLogging(LoginModel login);
+        Task<string> GenerateTokenWhileLogging(LoginModel login);
     }
     public class TokenService: ITokenService
     {
@@ -23,13 +23,13 @@ namespace Authorization.Services
             _userService = userService;
         }
 
-        public string GenerateTokenWhileLogging(LoginModel login)
+        public async Task<string> GenerateTokenWhileLogging(LoginModel login)
         {
-            var tokenCanBeCreated = _userService.CheckPassword(login);
+            var tokenCanBeCreated = await _userService.CheckPassword(login);
 
             if (!tokenCanBeCreated) return "";
 
-            var user = _userService.GetUserByEmail(login.Email);
+            var user = await _userService.GetUserByEmail(login.Email);
 
             if(user.IsPermamentBan())
             {

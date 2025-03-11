@@ -1,11 +1,16 @@
+using Authorization.Database;
 using Authorization.Models;
 using Authorization.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
+builder.Services.AddDbContext<ApiDatabaseContext>(options =>
+    options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
 builder.Services.AddAuthentication(x =>
@@ -35,8 +40,8 @@ builder.Services.Configure<JwtSettings>(config.GetSection("JwtSettings"));
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddSingleton<IFakeDatabaseService, FakeDatabaseService>();
 builder.Services.AddControllers();
+builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
