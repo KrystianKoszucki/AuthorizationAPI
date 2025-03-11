@@ -21,11 +21,11 @@ namespace Authorization.Controllers
 
         [Authorize(Policy = "AdminOrSuperAdminPolicy")]
         [HttpGet("{userId}")]
-        public IActionResult GetUser([FromRoute] int userId)
+        public async Task<IActionResult> GetUser([FromRoute] int userId)
         {
             if (userId != null)
             {
-                var user = _userService.GetUser(userId);
+                var user = await _userService.GetUser(userId);
                 if (user == null)
                 {
                     return NotFound(new { message = "User does not exist" });
@@ -36,22 +36,22 @@ namespace Authorization.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult RegisterUser([FromBody] User user)
+        public async Task<IActionResult> RegisterUser([FromBody] User user)
         {
             if (user == null) return BadRequest();
 
-            var checkIfEmailIsTaken = _userService.GetUserByEmail(user.Email);
+            var checkIfEmailIsTaken = await _userService.GetUserByEmail(user.Email);
 
-            if (checkIfEmailIsTaken != null) return BadRequest();
+            if (checkIfEmailIsTaken != null) return BadRequest(new { message = "Email is already taken." });
 
-            _userService.Register(user);
+            await _userService.Register(user);
             return Ok();
         }
 
         [HttpPost("login")]
-        public IActionResult LoginUser([FromBody] LoginModel loginData)
+        public async Task<IActionResult> LoginUser([FromBody] LoginModel loginData)
         {
-            var jwt = _tokenService.GenerateTokenWhileLogging(loginData);
+            var jwt = await _tokenService.GenerateTokenWhileLogging(loginData);
 
             if (jwt == null || jwt == string.Empty)
             {
@@ -71,12 +71,12 @@ namespace Authorization.Controllers
 
         [Authorize]
         [HttpGet("profile")]
-        public IActionResult GetUserProfile()
+        public async Task<IActionResult> GetUserProfile()
         {
             int userId = User.GetUserId();
             if (userId == 0) return BadRequest();
 
-            var user = _userService.GetUser(userId);
+            var user = await _userService.GetUser(userId);
 
             if (user == null)
             {
@@ -84,7 +84,6 @@ namespace Authorization.Controllers
             }
 
             if (user.IsCurrentlyBanned())
-            //if (user.RoleId == UserRoles.Banned)
                 {
                 var response = new { message = $"Your account has been banned, so viewing profile action is impossible" };
                 return new ObjectResult(response)
@@ -98,12 +97,12 @@ namespace Authorization.Controllers
 
         [Authorize]
         [HttpPatch("changePassword")]
-        public IActionResult UpdateUserPassword([FromBody] UpdatePasswordModel passwordRequest)
+        public async Task<IActionResult> UpdateUserPassword([FromBody] UpdatePasswordModel passwordRequest)
         {
             int userId = User.GetUserId();
 
             if (userId == 0) return BadRequest();
-            var user = _userService.GetUser(userId);
+            var user = await _userService.GetUser(userId);
 
             if (user == null) return NotFound();
             if (passwordRequest.OldPassword != user.Password || passwordRequest.OldPassword.IsNullOrEmpty() || passwordRequest.NewPassword.IsNullOrEmpty())
@@ -111,15 +110,15 @@ namespace Authorization.Controllers
                 return BadRequest();
             }
 
-            _userService.UpdatePassword(user, passwordRequest.NewPassword);
+            await _userService.UpdatePassword(user, passwordRequest.NewPassword);
             return NoContent();
         }
 
         [Authorize(Policy = "AdminOrSuperAdminPolicy")]
         [HttpPatch("changeRole")]
-        public IActionResult UpdateUserRole([FromBody] UpdateRole updateRoleRequest)
+        public async Task<IActionResult> UpdateUserRole([FromBody] UpdateRole updateRoleRequest)
         {
-            var user = _userService.GetUser(updateRoleRequest.UserId);
+            var user = await _userService.GetUser(updateRoleRequest.UserId);
 
             if (user == null)
             {
@@ -149,13 +148,13 @@ namespace Authorization.Controllers
                     StatusCode = 400
                 };
             }
-            _userService.UpdateRole(user, updateRoleRequest);
+            await _userService.UpdateRole(user, updateRoleRequest);
             return NoContent();
         }
 
         [Authorize(Roles = "Admin,SuperAdmin,User")]
         [HttpDelete("delete/{userId}")]
-        public IActionResult DeleteUser([FromRoute] int userId)
+        public async Task<IActionResult> DeleteUser([FromRoute] int userId)
         {
             if (userId == 0)
             {
@@ -172,7 +171,7 @@ namespace Authorization.Controllers
                 };
             }
 
-            var user = _userService.GetUser(userId);
+            var user = await _userService.GetUser(userId);
             if (user == null)
             {
                 return NotFound("User does not exist");
@@ -186,15 +185,15 @@ namespace Authorization.Controllers
                     StatusCode = 403
                 };
             }
-            _userService.DeleteUser(userId);
+            await _userService.DeleteUser(userId);
             return Ok(new { message = "Resource deleted successfully." });
         }
 
         [Authorize(Policy = "AdminOrSuperAdminPolicy")]
         [HttpPatch("ban/{userId}")]
-        public IActionResult BanUser([FromRoute] int userId)
+        public async Task<IActionResult> BanUser([FromRoute] int userId)
         {
-            var userToBeBanned = _userService.GetUser(userId);
+            var userToBeBanned = await _userService.GetUser(userId);
             if (userToBeBanned == null)
             {
                 return NotFound("User does not exist");
@@ -206,7 +205,7 @@ namespace Authorization.Controllers
             }
 
             var currentUserId = User.GetUserId();
-            var currentUser = _userService.GetUser(currentUserId);
+            var currentUser = await _userService.GetUser(currentUserId);
             if (currentUser == null)
             {
                 var response = new
@@ -228,7 +227,7 @@ namespace Authorization.Controllers
             var isSuperAdmin = currentUser.RoleId == UserRoles.SuperAdmin;
             if (isSuperAdmin)
             {
-                _userService.BanUser(userToBeBanned);
+                await _userService.BanUser(userToBeBanned);
                 return NoContent();
             }
 
@@ -242,15 +241,15 @@ namespace Authorization.Controllers
                 };
             }
             
-            _userService.BanUser(userToBeBanned);
+            await _userService.BanUser(userToBeBanned);
             return NoContent();
         }
 
         [Authorize(Policy = "AdminOrSuperAdminPolicy")]
         [HttpPatch("unban/{userId}")]
-        public IActionResult UnbanUser([FromRoute] int userId)
+        public async Task<IActionResult> UnbanUser([FromRoute] int userId)
         {
-            var userToBeUnbanned = _userService.GetUser(userId);
+            var userToBeUnbanned = await _userService.GetUser(userId);
 
             if(userToBeUnbanned == null)
             {
@@ -278,15 +277,15 @@ namespace Authorization.Controllers
                 return triedToSelfHandle;
             }
 
-            _userService.UnbanUser(userToBeUnbanned);
+            await _userService.UnbanUser(userToBeUnbanned);
             return NoContent();
         }
 
         [Authorize(Roles = "SuperAdmin")]
         [HttpPatch("undoPermaban/{userId}")]
-        public IActionResult UndoPermaban([FromRoute] int userId)
+        public async Task<IActionResult> UndoPermaban([FromRoute] int userId)
         {
-            var userToBeUnbanned = _userService.GetUser(userId);
+            var userToBeUnbanned = await _userService.GetUser(userId);
             if (userToBeUnbanned == null)
             {
                 return NotFound(new { message = "User does not exist" });
@@ -303,15 +302,15 @@ namespace Authorization.Controllers
                 return triedToSelfHandle;
             }
 
-            _userService.UnbanUser(userToBeUnbanned);
+            await _userService.UnbanUser(userToBeUnbanned);
             return NoContent();
         }
 
         [Authorize(Roles = "SuperAdmin")]
         [HttpPatch("permaban/{userId}")]
-        public IActionResult Permaban([FromRoute] int userId)
+        public async Task<IActionResult> Permaban([FromRoute] int userId)
         {
-            var userToBePermabanned = _userService.GetUser(userId);
+            var userToBePermabanned = await _userService.GetUser(userId);
             if (userToBePermabanned == null)
             {
                 return NotFound(new { message = "User does not exist" });
@@ -332,7 +331,7 @@ namespace Authorization.Controllers
                 };
             }
 
-            _userService.PermabanUser(userToBePermabanned);
+            await _userService.PermabanUser(userToBePermabanned);
             return NoContent();
         }
 

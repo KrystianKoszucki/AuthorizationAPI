@@ -4,28 +4,27 @@ namespace Authorization.Services
 {
     public interface IUserService
     {
-        void Register(User user);
-        User GetUser(int id);
-        User GetUserByEmail(string email);
-        bool CheckPassword(LoginModel loginModel);
-        void UpdatePassword(User user, string newPassword);
-        void UpdateRole(User user, UpdateRole updateRoleRequest);
-        void DeleteUser(int id);
-        //void BanUser(User user);
-        void BanUser(User user);
-        void UnbanUser(User user);
-        void PermabanUser(User user);
+        Task Register(User user);
+        Task<User> GetUser(int id);
+        Task<User> GetUserByEmail(string email);
+        Task<bool> CheckPassword(LoginModel loginModel);
+        Task UpdatePassword(User user, string newPassword);
+        Task UpdateRole(User user, UpdateRole updateRoleRequest);
+        Task DeleteUser(int id);
+        Task BanUser(User user);
+        Task UnbanUser(User user);
+        Task PermabanUser(User user);
     }
     public class UserService: IUserService
     {
-        private readonly IFakeDatabaseService _databaseService;
+        private readonly IDatabaseService _database;
 
-        public UserService(IFakeDatabaseService fakeDatabaseService)
+        public UserService(IDatabaseService database)
         {
-            _databaseService = fakeDatabaseService;
+            _database = database;
         }
 
-        public void Register(User user)
+        public async Task Register(User user)
         {
             var newUser = new User()
             {
@@ -37,22 +36,22 @@ namespace Authorization.Services
                 RoleId = UserRoles.User
             };
 
-            _databaseService.AddUser(newUser);
+            await _database.AddUserAsync(newUser);
         }
 
-        public User GetUser(int id)
+        public async Task<User> GetUser(int id)
         {
-            return _databaseService.GetUserById(id);
+            return await _database.GetUserByIdAsync(id);
         }
 
-        public User GetUserByEmail(string email)
+        public async Task<User> GetUserByEmail(string email)
         {
-            return _databaseService.GetUserByEmail(email);
+            return await _database.GetUserByEmailAsync(email);
         }
 
-        public bool CheckPassword(LoginModel loginModel)
+        public async Task<bool> CheckPassword(LoginModel loginModel)
         {
-            var user = GetUserByEmail(loginModel.Email);
+            var user = await GetUserByEmail(loginModel.Email);
 
             if (user == null) return false;
             if (loginModel.Password != user.Password) return false;
@@ -60,36 +59,39 @@ namespace Authorization.Services
             return true;
         }
 
-        public void UpdatePassword(User user, string newPassword)
+        public async Task UpdatePassword(User user, string newPassword)
         {
             user.Password = newPassword;
-            _databaseService.UpdateUser(user);
+            await _database.UpdateUserAsync(user);
         }
 
-        public void UpdateRole(User user, UpdateRole updateRoleRequest)
+        public async Task UpdateRole(User user, UpdateRole updateRoleRequest)
         {
             user.RoleId = updateRoleRequest.Role;
-            _databaseService.UpdateUser(user);
+            await _database.UpdateUserAsync(user);
         }
 
-        public void DeleteUser(int id)
+        public async Task DeleteUser(int id)
         {
-            _databaseService.DeleteUser(id);
+            await _database.DeleteUserAsync(id);
         }
 
-        public void BanUser(User user)
+        public async Task BanUser(User user)
         {
             user.HandleBan();
+            await _database.UpdateUserAsync(user);
         }
 
-        public void UnbanUser(User user)
+        public async Task UnbanUser(User user)
         {
             user.Unban();
+            await _database.UpdateUserAsync(user);
         }
 
-        public void PermabanUser(User user)
+        public async Task PermabanUser(User user)
         {
             user.Permaban();
+            await _database.UpdateUserAsync(user);
         }
     }
 }
