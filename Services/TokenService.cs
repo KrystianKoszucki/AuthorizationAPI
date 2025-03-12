@@ -40,7 +40,7 @@ namespace Authorization.Services
 
             if (user.IsCurrentlyBanned())
             {
-                var message = $"Your account has been banned until {user.LastBanDate + user.BanDuration}." +
+                var message = $"Your account has been banned until {user.BanEndDate}." +
                     $"\n That is your ban number: {user.BanCounter}. After 3rd one you will be banned permamently.";
                 return message;
             }

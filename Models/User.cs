@@ -13,15 +13,15 @@ namespace Authorization.Models
         public UserRoles RoleIdBeforeBan { get; private set; }
         public int BanCounter { get; private set; } = 0;
         public DateTime LastBanDate { get; private set; }
-        public TimeSpan? BanDuration { get; private set; }
+        public DateTime? BanEndDate { get; private set; }
 
         public void HandleBan()
         {
             RoleIdBeforeBan = RoleId;
             ++BanCounter;
             LastBanDate = DateTime.Now;
-            BanDuration = GetBanDuration(BanCounter);
             RoleId = UserRoles.Banned;
+            BanEndDate = GetBanEndDate(BanCounter);
         }
 
         private TimeSpan? GetBanDuration(int banCount)
@@ -34,6 +34,12 @@ namespace Authorization.Models
             };
         }
 
+        private DateTime GetBanEndDate(int banCount)
+        {
+            var banDuration = GetBanDuration(banCount);
+            return (DateTime)(LastBanDate + banDuration);
+        }
+
         public bool IsCurrentlyBanned()
         {
             var bannedPermammently = IsPermamentBan();
@@ -43,12 +49,12 @@ namespace Authorization.Models
                 return true;
             }
 
-            if (!BanDuration.HasValue)
+            if (!BanEndDate.HasValue || DateTime.Now > BanEndDate)
             {
                 return false;
             }
 
-            if (DateTime.Now >= LastBanDate + BanDuration)
+            if (DateTime.Now >= BanEndDate)
             {
                 RoleId = RoleIdBeforeBan;
                 return false;
@@ -59,21 +65,21 @@ namespace Authorization.Models
 
         public bool IsPermamentBan()
         {
-            return BanDuration == null && BanCounter >= 3;
+            return BanEndDate == null && BanCounter >= 3;
         }
 
         public void Unban()
         {
             --BanCounter;
             RoleId = RoleIdBeforeBan;
-            BanDuration = TimeSpan.FromDays(0);
+            BanEndDate = DateTime.Now.AddDays(-2);
         }
 
         public void Permaban()
         {
             BanCounter = 3;
             RoleId = UserRoles.Banned;
-            BanDuration = null;
+            BanEndDate = null;
         }
 
     }
