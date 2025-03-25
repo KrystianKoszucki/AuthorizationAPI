@@ -125,6 +125,11 @@ namespace Authorization.Controllers
                 return NotFound(new { message = "User does not exist" });
             }
 
+            if (updateRoleRequest.Role == 0)
+            {
+                return BadRequest(new { message = "Choose user's new role, which is different than guest." });
+            }
+
             if (user.RoleId == UserRoles.Banned)
             {
                 return BadRequest(new { message = "Cannot change banned user's role." });

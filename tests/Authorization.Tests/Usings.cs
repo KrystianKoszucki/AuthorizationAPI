@@ -1,0 +1,9 @@
+global using Xunit;
+global using Authorization.Extensions;
+global using Authorization.Models;
+global using Authorization.Services;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.IdentityModel.Tokens;
+global using Authorization.Controllers;
+global using Moq;

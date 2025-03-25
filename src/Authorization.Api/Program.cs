@@ -66,4 +66,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+if (app.Environment.IsEnvironment("Testing"))
+{
+
+}
+else
+{
+    app.Run();
+}
+
+public partial class Program { }
