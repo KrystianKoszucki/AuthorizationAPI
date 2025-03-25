@@ -11,6 +11,12 @@ namespace Authorization.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                modelBuilder.Entity<User>()
+                    .Property(u => u.Id)
+                    .HasAnnotation("Sqlite:Autoincrement", true);
+            }
             modelBuilder.Entity<User>().HasData(
                 new User() { Id = 1, Name = "User1", Surname = "Surname1", DateOfBirth = new DateTime(1998, 5, 5), Email = "User1Surname1@email.com", Password = "testUser1Surname1", RoleId = UserRoles.SuperAdmin },
                 new User() { Id = 2, Name = "User2", Surname = "Surname2", DateOfBirth = new DateTime(2006, 10, 8), Email = "User2Surname2@email.com", Password = "testUser2Surname2", RoleId = UserRoles.User },
